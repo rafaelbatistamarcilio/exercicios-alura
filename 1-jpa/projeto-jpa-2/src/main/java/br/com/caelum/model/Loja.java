@@ -5,6 +5,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+@Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Entity
 public class Loja {
 	

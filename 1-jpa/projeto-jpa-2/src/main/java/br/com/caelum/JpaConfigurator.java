@@ -1,10 +1,13 @@
 package br.com.caelum;
 
+import java.beans.PropertyVetoException;
 import java.util.Properties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -13,21 +16,33 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
 @Configuration
 @EnableTransactionManagement
 public class JpaConfigurator {
 
-	@Bean
-	public DataSource getDataSource() {
-	    DriverManagerDataSource dataSource = new DriverManagerDataSource();
+	@Bean(destroyMethod = "close")
+	public DataSource getDataSource() throws PropertyVetoException {
+		ComboPooledDataSource dataSource = new ComboPooledDataSource();
 
-	    dataSource.setDriverClassName("org.postgresql.Driver");
-	    dataSource.setUrl("jdbc:postgresql://localhost:5432/projeto_jpa");
-	    dataSource.setUsername("alura");
+	    dataSource.setDriverClass("org.postgresql.Driver");    
+	    dataSource.setJdbcUrl("jdbc:postgresql://localhost:5432/projeto_jpa");
+	    dataSource.setUser("alura");
 	    dataSource.setPassword("alura");
+	
+	    dataSource.setMinPoolSize(3);
+	    dataSource.setMaxPoolSize(5);
 	    
-
+	    //teste de conexões ociosas
+	    dataSource.setIdleConnectionTestPeriod(1);
+	    
 	    return dataSource;
+	}
+	
+	@Bean
+	public Statistics statistics(EntityManagerFactory emf) { 
+	    return emf.unwrap(SessionFactory.class).getStatistics();
 	}
 
 	@Bean
@@ -45,8 +60,16 @@ public class JpaConfigurator {
 		props.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 		props.setProperty("hibernate.show_sql", "true");
 		props.setProperty("hibernate.hbm2ddl.auto", "create-drop");
-
-		entityManagerFactory.setJpaProperties(props);
+		
+		//cache
+		props.setProperty("hibernate.cache.use_second_level_cache", "true");
+        props.setProperty("hibernate.cache.use_query_cache", "true");
+        props.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory");
+        
+        //estatísticas
+        props.setProperty("hibernate.generate_statistics", "true");
+		
+        entityManagerFactory.setJpaProperties(props);
 		return entityManagerFactory;
 	}
 

@@ -12,17 +12,24 @@ import javax.persistence.Id;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.Version;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Entity
+@Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Produto {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private Integer id;
+	
+	@Version
+	private int versao;
 	
 	@NotEmpty
 	private String nome;
@@ -36,10 +43,19 @@ public class Produto {
 	@Min(20)
 	private double preco;
 	
+	@Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 	@JoinTable(name="RL_PRODUTO_CATEGORIA")
 	@ManyToMany
 	private List<Categoria> categorias = new ArrayList<>();
 	
+	public int getVersao() {
+		return versao;
+	}
+
+	public void setVersao(int versao) {
+		this.versao = versao;
+	}
+
 	public List<Categoria> getCategorias() {
 		return categorias;
 	}
