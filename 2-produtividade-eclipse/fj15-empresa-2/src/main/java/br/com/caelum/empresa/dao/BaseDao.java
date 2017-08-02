@@ -1,0 +1,43 @@
+package br.com.caelum.empresa.dao;
+
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+public class BaseDao<T> {
+
+	private final EntityManager entityManager = new JPAUtil().getEntityManager();
+
+ 	private Class<T> classe;
+	
+	public BaseDao(Class<T> classe) {
+		super();
+		this.classe = classe;
+	}
+
+	public void adiciona(T entity) {
+	    entityManager.persist(entity);
+	}
+
+	public T atualiza(T entity) {
+	    return entityManager.merge(entity);
+	}
+
+	public void remove(T entity) {
+	    entityManager.remove(entity);
+	}
+
+	public T buscaPorId(Long id) {
+	    return entityManager.find(classe, id);
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<T> buscaTodos() {
+	    Query query = entityManager
+	            .createQuery("from " + classe.getName());
+	    
+	    return (List<T>) query.getResultList();
+	}
+
+}
